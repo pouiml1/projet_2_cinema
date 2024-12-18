@@ -1,22 +1,69 @@
 import streamlit as st
 import json
-import zipfile
 from datetime import datetime
+import zipfile
 
-############ ZIP ###############
+import os
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
+import io
 
-# Définir le chemin du fichier ZIP
-zip_file_path = r'data/data_ml_final.zip'
+# Définir les scopes nécessaires pour accéder à Google Drive
+SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 
-# Nom du fichier JSON à l'intérieur du ZIP
-json_file_name = 'data_ml_final.json'
+# Fonction pour récupérer les identifiants d'authentification
+def authenticate_google_drive():
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+    return creds
 
-# Ouvrir et lire le fichier JSON à partir du ZIP
-with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-    with zip_ref.open(json_file_name) as file:
+# Fonction pour télécharger un fichier depuis Google Drive
+def download_file_from_drive(file_id):
+    creds = authenticate_google_drive()
+    service = build('drive', 'v3', credentials=creds)
+    request = service.files().get_media(fileId=file_id)
+    fh = io.FileIO('downloaded_file.zip', 'wb')
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+    return 'downloaded_file.zip'
+
+# Fonction pour extraire le fichier ZIP
+def extract_zip(zip_file_path, extract_to_folder='data_folder'):
+    # Créer le dossier d'extraction s'il n'existe pas
+    if not os.path.exists(extract_to_folder):
+        os.makedirs(extract_to_folder)
+    
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to_folder)
+        return extract_to_folder  # Retourner le chemin du dossier d'extraction
+
+# Fonction pour charger les données JSON
+def load_data_from_json(json_file_path):
+    with open(json_file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
+    return data
 
-#################################
+# Utilisation dans Streamlit
+zip_file_path = 'data_ml_final.zip'  # Le chemin vers votre fichier ZIP téléchargé
+extracted_folder = extract_zip(zip_file_path)
+
+# Charger le fichier JSON extrait
+json_file_path = os.path.join(extracted_folder, 'data_ml_final.json')  # Remplacez par le nom exact de votre fichier JSON
+data = load_data_from_json(json_file_path)
 
 ############ CSS ###############
 
