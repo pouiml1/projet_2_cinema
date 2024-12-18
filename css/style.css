@@ -1,0 +1,73 @@
+/* Arrière-plan des films aimés */
+.film-background {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    padding: 35px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+}
+
+.film-background .background-opacity {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.3;
+    border-radius: 15px;
+}
+
+/* Titre des films */
+.film-title {
+    font-size: 30px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px #000;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* Effet de zoom pour les affiches des films */
+.movie-poster {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+}
+
+.movie-poster:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Conteneur pour centrer les boutons */
+.center-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Transition pour les détails des films */
+.details-container {
+    display: none;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.details-container.show {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
